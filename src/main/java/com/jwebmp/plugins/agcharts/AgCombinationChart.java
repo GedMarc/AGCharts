@@ -1,0 +1,91 @@
+package com.jwebmp.plugins.agcharts;
+
+import com.jwebmp.plugins.agcharts.options.AgChartOptions;
+import com.jwebmp.plugins.agcharts.options.axes.AgAxisBaseOptions;
+import com.jwebmp.plugins.agcharts.options.series.AgSeriesBaseOptions;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Convenience Combination Chart component.
+ *
+ * Mirrors the ChartJS-style component approach and allows combining heterogeneous
+ * series types (bar, line, area, scatter, bubble) in a single chart. You can also
+ * provide axis configurations (e.g., set a secondary axis and link via axis.keys).
+ *
+ * Example usage:
+ *   AgCombinationChart chart = new AgCombinationChart("salesCombo")
+ *       .addSeries(new AgBarSeriesOptions<>()
+ *           .setXKey("year").setYKey("men"))
+ *       .addSeries(new AgLineSeriesOptions<>()
+ *           .setXKey("year").setYKey("portions"))
+ *       .setAxes(List.of(
+ *           new AgCategoryAxisOptions<>().setPosition(AgCartesianAxisPosition.BOTTOM),
+ *           new AgNumberAxisOptions<>().setPosition(AgCartesianAxisPosition.LEFT).setKeys(List.of("men")),
+ *           new AgNumberAxisOptions<>().setPosition(AgCartesianAxisPosition.RIGHT).setKeys(List.of("portions"))
+ *       ));
+ */
+public class AgCombinationChart extends AgChart<AgCombinationChart>
+{
+    private final List<AgSeriesBaseOptions<?>> series = new ArrayList<>();
+    private List<AgAxisBaseOptions<?>> axes; // optional
+
+    public AgCombinationChart(String id)
+    {
+        super(id);
+    }
+
+    /** Add a series of any supported type (bar, line, area, scatter, bubble). */
+    public AgCombinationChart addSeries(AgSeriesBaseOptions<?> s)
+    {
+        if (s != null)
+        {
+            this.series.add(s);
+        }
+        return this;
+    }
+
+    /** Replace the series array entirely. */
+    public AgCombinationChart setSeries(List<AgSeriesBaseOptions<?>> series)
+    {
+        this.series.clear();
+        if (series != null)
+        {
+            this.series.addAll(series);
+        }
+        return this;
+    }
+
+    /** Optional: provide axes for primary/secondary configuration and customisation. */
+    public AgCombinationChart setAxes(List<AgAxisBaseOptions<?>> axes)
+    {
+        this.axes = axes;
+        return this;
+    }
+
+    public List<AgSeriesBaseOptions<?>> getSeries()
+    {
+        return series;
+    }
+
+    public List<AgAxisBaseOptions<?>> getAxes()
+    {
+        return axes;
+    }
+
+    @Override
+    public AgChartOptions<?> getInitialOptions()
+    {
+        AgChartOptions<?> options = new AgChartOptions<>();
+        if (!series.isEmpty())
+        {
+            options.setSeries(series);
+        }
+        if (axes != null && !axes.isEmpty())
+        {
+            options.setAxes(axes);
+        }
+        return options;
+    }
+}
