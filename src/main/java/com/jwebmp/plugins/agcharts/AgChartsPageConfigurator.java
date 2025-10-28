@@ -14,7 +14,7 @@ import jakarta.validation.constraints.NotNull;
         pluginName = "AG Charts",
         pluginUniqueName = "ag-charts",
         pluginDescription = "AG Charts is a powerful charting and data visualization library with Angular support.",
-        pluginVersion = "10.0.0",
+        pluginVersion = "12.2.0",
         pluginCategories = "charts, graphing, data-viz, web ui",
         pluginSubtitle = "Charting for the modern web",
         pluginSourceUrl = "https://www.ag-grid.com/charts/",
@@ -31,10 +31,10 @@ import jakarta.validation.constraints.NotNull;
         pluginStatus = PluginStatus.Released
 )
 
-@TsDependency(value = "ag-charts-community", version = "^10.0.0")
-@TsDependency(value = "ag-charts-enterprise", version = "^10.0.0")
-@TsDependency(value = "ag-charts-angular", version = "^10.0.0")
-@TsDependency(value = "ag-charts-locale", version = "^10.0.0")
+@TsDependency(value = "ag-charts-community", version = "^12.2.0")
+@TsDependency(value = "ag-charts-enterprise", version = "^12.2.0")
+@TsDependency(value = "ag-charts-angular", version = "^12.2.0")
+@TsDependency(value = "ag-charts-locale", version = "^12.2.0")
 public class AgChartsPageConfigurator implements IPageConfigurator<AgChartsPageConfigurator>, com.jwebmp.core.base.angular.client.services.TypescriptIndexPageConfigurator<AgChartsPageConfigurator>
 {
     private static boolean enabled = true;
