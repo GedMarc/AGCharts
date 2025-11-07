@@ -1,30 +1,32 @@
 package com.jwebmp.plugins.agcharts;
 
 import com.jwebmp.plugins.agcharts.options.AgChartOptions;
-import com.jwebmp.plugins.agcharts.options.series.AgScatterSeriesOptions;
+import com.jwebmp.plugins.agcharts.options.series.AgBubbleSeriesOptions;
 
 import java.util.List;
 
 /**
- * Convenience Scatter Chart component.
+ * Convenience Bubble Chart component.
  *
- * Provides an easy way to instantiate a chart with a single Scatter series, similar
- * to ChartJS convenience wrappers. You can still override getInitialOptions()
- * if you need to customise axes, legend, tooltip, theme, etc.
+ * Provides an easy way to instantiate a chart with a single Bubble series.
  */
-public class AgScatterChart<J extends AgScatterChart<J>> extends AgChart<J>
+public class AgBubbleChart<J extends AgBubbleChart<J>> extends AgChart<J>
 {
     private final String xKey;
     private final String yKey;
+    private final String sizeKey;
+
     private String xName;
     private String yName;
+    private String sizeName;
     private List<?> data; // optional data attached to the series
 
-    public AgScatterChart(String id, String xKey, String yKey)
+    public AgBubbleChart(String id, String xKey, String yKey, String sizeKey)
     {
         super(id);
         this.xKey = xKey;
         this.yKey = yKey;
+        this.sizeKey = sizeKey;
     }
 
     /** Optional: attach data directly to the series. */
@@ -46,18 +48,26 @@ public class AgScatterChart<J extends AgScatterChart<J>> extends AgChart<J>
         return (J) this;
     }
 
+    public J setSizeName(String sizeName)
+    {
+        this.sizeName = sizeName;
+        return (J) this;
+    }
+
     @Override
     public AgChartOptions<?> getInitialOptions()
     {
-        AgScatterSeriesOptions<?> scatter = new AgScatterSeriesOptions<>()
+        AgBubbleSeriesOptions<?> bubble = new AgBubbleSeriesOptions<>()
                 .setXKey(xKey)
                 .setYKey(yKey)
+                .setSizeKey(sizeKey)
                 .setShowInLegend(true);
-        if (xName != null) scatter.setXName(xName);
-        if (yName != null) scatter.setYName(yName);
-        if (data != null) scatter.setData(data);
+        if (xName != null) bubble.setXName(xName);
+        if (yName != null) bubble.setYName(yName);
+        if (sizeName != null) bubble.setSizeName(sizeName);
+        if (data != null) bubble.setData(data);
 
         return new AgChartOptions<>()
-                .setSeries(java.util.List.of(scatter));
+                .setSeries(java.util.List.of(bubble));
     }
 }

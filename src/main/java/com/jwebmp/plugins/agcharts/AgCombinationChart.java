@@ -26,7 +26,7 @@ import java.util.List;
  *           new AgNumberAxisOptions<>().setPosition(AgCartesianAxisPosition.RIGHT).setKeys(List.of("portions"))
  *       ));
  */
-public class AgCombinationChart extends AgChart<AgCombinationChart>
+public class AgCombinationChart<J extends AgCombinationChart<J>> extends AgChart<J>
 {
     private final List<AgSeriesBaseOptions<?>> series = new ArrayList<>();
     private List<AgAxisBaseOptions<?>> axes; // optional
@@ -37,31 +37,31 @@ public class AgCombinationChart extends AgChart<AgCombinationChart>
     }
 
     /** Add a series of any supported type (bar, line, area, scatter, bubble). */
-    public AgCombinationChart addSeries(AgSeriesBaseOptions<?> s)
+    public J addSeries(AgSeriesBaseOptions<?> s)
     {
         if (s != null)
         {
             this.series.add(s);
         }
-        return this;
+        return (J) this;
     }
 
     /** Replace the series array entirely. */
-    public AgCombinationChart setSeries(List<AgSeriesBaseOptions<?>> series)
+    public J setSeries(List<AgSeriesBaseOptions<?>> series)
     {
         this.series.clear();
         if (series != null)
         {
             this.series.addAll(series);
         }
-        return this;
+        return (J) this;
     }
 
     /** Optional: provide axes for primary/secondary configuration and customisation. */
-    public AgCombinationChart setAxes(List<AgAxisBaseOptions<?>> axes)
+    public J setAxes(List<AgAxisBaseOptions<?>> axes)
     {
         this.axes = axes;
-        return this;
+        return (J) this;
     }
 
     public List<AgSeriesBaseOptions<?>> getSeries()

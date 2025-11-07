@@ -12,7 +12,7 @@ import java.util.List;
  * to other convenience components. You can still override getInitialOptions()
  * if you need to customise legend, tooltip, theme, etc.
  */
-public class AgDonutChart extends AgChart<AgDonutChart>
+public class AgDonutChart<J extends AgDonutChart<J>> extends AgChart<J>
 {
     private final String angleKey;
     private String calloutLabelKey;
@@ -28,28 +28,28 @@ public class AgDonutChart extends AgChart<AgDonutChart>
     }
 
     /** Optional: attach data directly to the series. */
-    public AgDonutChart setData(List<?> data)
+    public J setData(List<?> data)
     {
         this.data = data;
-        return this;
+        return (J) this;
     }
 
-    public AgDonutChart setCalloutLabelKey(String calloutLabelKey)
+    public J setCalloutLabelKey(String calloutLabelKey)
     {
         this.calloutLabelKey = calloutLabelKey;
-        return this;
+        return (J) this;
     }
 
-    public AgDonutChart setSectorLabelKey(String sectorLabelKey)
+    public J setSectorLabelKey(String sectorLabelKey)
     {
         this.sectorLabelKey = sectorLabelKey;
-        return this;
+        return (J) this;
     }
 
-    public AgDonutChart setLegendItemKey(String legendItemKey)
+    public J setLegendItemKey(String legendItemKey)
     {
         this.legendItemKey = legendItemKey;
-        return this;
+        return (J) this;
     }
 
     @Override

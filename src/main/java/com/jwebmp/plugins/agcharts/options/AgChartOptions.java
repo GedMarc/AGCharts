@@ -1,5 +1,6 @@
 package com.jwebmp.plugins.agcharts.options;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
@@ -17,17 +18,18 @@ import java.util.List;
 
 /**
  * Root Chart options for AG Charts (Community).
- *
+ * <p>
  * Exposes a chart-level {@code formatter} supporting:
  * - Global formatter function (raw JS)
  * - Per-property formatter mapping using functions (raw JS per field)
  * - Per-property formatter mapping using format strings
- *
+ * <p>
  * Notes on precedence:
  * - Element-specific formatters (e.g., axes[].label.formatter) take precedence over the chart-level formatter.
  * - If element-specific formatter returns undefined, the chart-level formatter is attempted next, then AG defaults.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
 public class AgChartOptions<J extends AgChartOptions<J>> extends JavaScriptPart<J>
 {
     private List<AgAxisBaseOptions<?>> axes;
@@ -40,16 +42,26 @@ public class AgChartOptions<J extends AgChartOptions<J>> extends JavaScriptPart<
     private AgSeriesAreaOptions<?> seriesArea;
     private com.jwebmp.plugins.agcharts.options.overlays.AgChartOverlaysOptions<?> overlays;
 
+    // Enterprise: Gradient legend (used by heatmap etc.)
+    private com.jwebmp.plugins.agcharts.options.legend.gradient.AgGradientLegendOptions<?> gradientLegend;
+
+    // Enterprise: Navigator (zoom/pan with optional Mini Chart)
+    private com.jwebmp.plugins.agcharts.options.navigator.AgNavigatorOptions<?> navigator;
+
     // --- Layout / Sizing ---
     private Integer width;
     private Integer height;
     private Integer minWidth;
     private Integer minHeight;
 
-    /** Chart padding: number (uniform) or per-side object. */
+    /**
+     * Chart padding: number (uniform) or per-side object.
+     */
     private Object padding;
 
-    /** Captions with spacing. */
+    /**
+     * Captions with spacing.
+     */
     private AgChartCaptionOptions<?> title;
     private AgChartCaptionOptions<?> subtitle;
     private AgChartCaptionOptions<?> footnote;
@@ -59,16 +71,19 @@ public class AgChartOptions<J extends AgChartOptions<J>> extends JavaScriptPart<
      * Global formatter function applied to all textual elements. Raw JS string, e.g.:
      * <pre>function(p){ return p.value + '%'; }</pre>
      */
-    @JsonProperty("formatter")
-    @JsonRawValue
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private String formatterFunction;
 
-    /** Per-property formatter callbacks (as raw JS) for x, y, size, label, etc. */
-    @JsonProperty("formatter")
+    /**
+     * Per-property formatter callbacks (as raw JS) for x, y, size, label, etc.
+     */
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private AgChartPropertyFormatterFunctions<?> formatterFunctions;
 
-    /** Per-property formatter static format strings for x, y, size, label, etc. */
-    @JsonProperty("formatter")
+    /**
+     * Per-property formatter static format strings for x, y, size, label, etc.
+     */
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private AgChartPropertyFormatterFormats<?> formatterFormats;
 
     public List<AgAxisBaseOptions<?>> getAxes()
@@ -93,103 +108,193 @@ public class AgChartOptions<J extends AgChartOptions<J>> extends JavaScriptPart<
         return (J) this;
     }
 
-    public List<AgSeriesBaseOptions<?>> getSeries() {
+    public List<AgSeriesBaseOptions<?>> getSeries()
+    {
         return series;
     }
 
-    public J setSeries(List<AgSeriesBaseOptions<?>> series) {
+    public J setSeries(List<AgSeriesBaseOptions<?>> series)
+    {
         this.series = series;
         return (J) this;
     }
 
-    public Object getTheme() {
+    public com.jwebmp.plugins.agcharts.options.legend.gradient.AgGradientLegendOptions<?> getGradientLegend()
+    {
+        return gradientLegend;
+    }
+
+    public J setGradientLegend(com.jwebmp.plugins.agcharts.options.legend.gradient.AgGradientLegendOptions<?> gradientLegend)
+    {
+        this.gradientLegend = gradientLegend;
+        return (J) this;
+    }
+
+    public com.jwebmp.plugins.agcharts.options.navigator.AgNavigatorOptions<?> getNavigator()
+    {
+        return navigator;
+    }
+
+    public J setNavigator(com.jwebmp.plugins.agcharts.options.navigator.AgNavigatorOptions<?> navigator)
+    {
+        this.navigator = navigator;
+        return (J) this;
+    }
+
+    public Object getTheme()
+    {
         return theme;
     }
 
-    /** Set theme using a custom theme object. */
-    public J setTheme(AgChartTheme<?> theme) {
+    /**
+     * Set theme using a custom theme object.
+     */
+    public J setTheme(AgChartTheme<?> theme)
+    {
         this.theme = theme;
         return (J) this;
     }
 
-    /** Set theme using a stock theme name (e.g., "ag-vivid"). */
-    public J setTheme(String themeName) {
+    /**
+     * Set theme using a stock theme name (e.g., "ag-vivid").
+     */
+    public J setTheme(String themeName)
+    {
         this.theme = themeName;
         return (J) this;
     }
 
-    public AgLocaleOptions<?> getLocale() {
+    public AgLocaleOptions<?> getLocale()
+    {
         return locale;
     }
 
-    public J setLocale(AgLocaleOptions<?> locale) {
+    public J setLocale(AgLocaleOptions<?> locale)
+    {
         this.locale = locale;
         return (J) this;
     }
 
-    public AgChartTooltipOptions<?> getTooltip() {
+    public AgChartTooltipOptions<?> getTooltip()
+    {
         return tooltip;
     }
 
-    public J setTooltip(AgChartTooltipOptions<?> tooltip) {
+    public J setTooltip(AgChartTooltipOptions<?> tooltip)
+    {
         this.tooltip = tooltip;
         return (J) this;
     }
 
-    public AgChartBackground<?> getBackground() {
+    public AgChartBackground<?> getBackground()
+    {
         return background;
     }
 
-    public J setBackground(AgChartBackground<?> background) {
+    public J setBackground(AgChartBackground<?> background)
+    {
         this.background = background;
         return (J) this;
     }
 
-    public AgSeriesAreaOptions<?> getSeriesArea() {
+    public AgSeriesAreaOptions<?> getSeriesArea()
+    {
         return seriesArea;
     }
 
-    public J setSeriesArea(AgSeriesAreaOptions<?> seriesArea) {
+    public J setSeriesArea(AgSeriesAreaOptions<?> seriesArea)
+    {
         this.seriesArea = seriesArea;
         return (J) this;
     }
 
-    public com.jwebmp.plugins.agcharts.options.overlays.AgChartOverlaysOptions<?> getOverlays() {
+    public com.jwebmp.plugins.agcharts.options.overlays.AgChartOverlaysOptions<?> getOverlays()
+    {
         return overlays;
     }
 
-    public J setOverlays(com.jwebmp.plugins.agcharts.options.overlays.AgChartOverlaysOptions<?> overlays) {
+    public J setOverlays(com.jwebmp.plugins.agcharts.options.overlays.AgChartOverlaysOptions<?> overlays)
+    {
         this.overlays = overlays;
         return (J) this;
     }
 
     // --- Layout / Sizing getters/setters ---
-    public Integer getWidth() { return width; }
-    public J setWidth(Integer width) { this.width = width; return (J) this; }
+    public Integer getWidth() {return width;}
 
-    public Integer getHeight() { return height; }
-    public J setHeight(Integer height) { this.height = height; return (J) this; }
+    public J setWidth(Integer width)
+    {
+        this.width = width;
+        return (J) this;
+    }
 
-    public Integer getMinWidth() { return minWidth; }
-    public J setMinWidth(Integer minWidth) { this.minWidth = minWidth; return (J) this; }
+    public Integer getHeight() {return height;}
 
-    public Integer getMinHeight() { return minHeight; }
-    public J setMinHeight(Integer minHeight) { this.minHeight = minHeight; return (J) this; }
+    public J setHeight(Integer height)
+    {
+        this.height = height;
+        return (J) this;
+    }
 
-    public Object getPadding() { return padding; }
-    /** Set uniform chart padding in pixels. */
-    public J setPadding(Integer padding) { this.padding = padding; return (J) this; }
-    /** Set per-side chart padding. */
-    public J setPadding(com.jwebmp.plugins.agcharts.options.legend.AgPadding<?> padding) { this.padding = padding; return (J) this; }
+    public Integer getMinWidth() {return minWidth;}
 
-    public AgChartCaptionOptions<?> getTitle() { return title; }
-    public J setTitle(AgChartCaptionOptions<?> title) { this.title = title; return (J) this; }
+    public J setMinWidth(Integer minWidth)
+    {
+        this.minWidth = minWidth;
+        return (J) this;
+    }
 
-    public AgChartCaptionOptions<?> getSubtitle() { return subtitle; }
-    public J setSubtitle(AgChartCaptionOptions<?> subtitle) { this.subtitle = subtitle; return (J) this; }
+    public Integer getMinHeight() {return minHeight;}
 
-    public AgChartCaptionOptions<?> getFootnote() { return footnote; }
-    public J setFootnote(AgChartCaptionOptions<?> footnote) { this.footnote = footnote; return (J) this; }
+    public J setMinHeight(Integer minHeight)
+    {
+        this.minHeight = minHeight;
+        return (J) this;
+    }
+
+    public Object getPadding() {return padding;}
+
+    /**
+     * Set uniform chart padding in pixels.
+     */
+    public J setPadding(Integer padding)
+    {
+        this.padding = padding;
+        return (J) this;
+    }
+
+    /**
+     * Set per-side chart padding.
+     */
+    public J setPadding(com.jwebmp.plugins.agcharts.options.legend.AgPadding<?> padding)
+    {
+        this.padding = padding;
+        return (J) this;
+    }
+
+    public AgChartCaptionOptions<?> getTitle() {return title;}
+
+    public J setTitle(AgChartCaptionOptions<?> title)
+    {
+        this.title = title;
+        return (J) this;
+    }
+
+    public AgChartCaptionOptions<?> getSubtitle() {return subtitle;}
+
+    public J setSubtitle(AgChartCaptionOptions<?> subtitle)
+    {
+        this.subtitle = subtitle;
+        return (J) this;
+    }
+
+    public AgChartCaptionOptions<?> getFootnote() {return footnote;}
+
+    public J setFootnote(AgChartCaptionOptions<?> footnote)
+    {
+        this.footnote = footnote;
+        return (J) this;
+    }
 
     public String getFormatterFunction()
     {

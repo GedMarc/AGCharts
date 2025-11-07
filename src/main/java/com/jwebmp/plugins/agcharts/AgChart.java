@@ -10,6 +10,7 @@ import com.jwebmp.core.base.angular.client.annotations.functions.NgAfterViewInit
 import com.jwebmp.core.base.angular.client.annotations.functions.NgOnDestroy;
 import com.jwebmp.core.base.angular.client.annotations.references.NgComponentReference;
 import com.jwebmp.core.base.angular.client.annotations.references.NgImportModule;
+import com.jwebmp.core.base.angular.client.annotations.references.NgImportReference;
 import com.jwebmp.core.base.angular.client.annotations.structures.NgField;
 import com.jwebmp.core.base.angular.client.annotations.structures.NgMethod;
 import com.jwebmp.core.base.angular.client.services.EventBusService;
@@ -25,14 +26,19 @@ import java.util.List;
 
 /**
  * Base AG Charts component for JWebMP.
- *
+ * <p>
  * Renders the ag-charts-angular component and binds a single [options] input.
  * Behaviour mirrors the ChartJS integration pattern: options are loaded via
  * the EventBus/WebSocket pipeline.
  */
 @NgComponentReference(EventBusService.class)
 @NgComponentReference(DynamicData.class)
-@NgImportModule("AgChartsAngularModule")
+
+@NgImportReference(value = "AgCharts", reference = "ag-charts-angular")
+@NgImportModule("AgCharts")
+
+@NgImportReference(value = "v4 as uuidv4", reference = "uuid")
+
 
 // Angular glue - holds runtime state and behaviour.
 @NgField("private chartOpts: any; // holds the current chart options")
@@ -80,6 +86,15 @@ import java.util.List;
 
 @NgAfterViewInit("this.initializeOptionsListener(); this.fetchData();")
 @NgOnDestroy("this.subscriptionOptions?.unsubscribe(); this.eventBusService.unregisterListener(this.listenerName + 'Options', this.handlerId);")
+
+@NgImportReference(value = "Subscription", reference = "rxjs")
+@NgMethod("""
+        private generateHandlerId(): string {
+            return `${this.listenerName}-${uuidv4()}`;
+        }
+        """)
+
+
 public abstract class AgChart<J extends AgChart<J>> extends DivSimple<J> implements INgComponent<J>
 {
     public AgChart()
@@ -138,7 +153,7 @@ public abstract class AgChart<J extends AgChart<J>> extends DivSimple<J> impleme
         private String listenerName;
         private Class<? extends AgChart> actionClass;
 
-        public InitialOptionsReceiver() { }
+        public InitialOptionsReceiver() {}
 
         public InitialOptionsReceiver(String listenerName, Class<? extends AgChart> actionClass)
         {
@@ -159,7 +174,8 @@ public abstract class AgChart<J extends AgChart<J>> extends DivSimple<J> impleme
             {
                 // Resolve the concrete component class and listener name from the call
                 actionClass = (Class<? extends AgChart>) Class.forName(call.getClassName());
-                Object ln = call.getUnknownFields() != null ? call.getUnknownFields().get("listenerName") : null;
+                Object ln = call.getUnknownFields() != null ? call.getUnknownFields()
+                                                                  .get("listenerName") : null;
                 if (ln != null)
                 {
                     listenerName = ln.toString();
@@ -170,7 +186,8 @@ public abstract class AgChart<J extends AgChart<J>> extends DivSimple<J> impleme
                 e.printStackTrace();
             }
 
-            AgChartOptions<?> initial = IGuiceContext.get(actionClass).getInitialOptions();
+            AgChartOptions<?> initial = IGuiceContext.get(actionClass)
+                                                     .getInitialOptions();
             if (initial == null)
             {
                 return null;

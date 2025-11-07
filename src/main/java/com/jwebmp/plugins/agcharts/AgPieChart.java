@@ -12,7 +12,7 @@ import java.util.List;
  * to other ChartJS-style convenience wrappers. You can still override getInitialOptions()
  * if you need to customise legend, tooltip, theme, etc.
  */
-public class AgPieChart extends AgChart<AgPieChart>
+public class AgPieChart<J extends AgPieChart<J>> extends AgChart<J>
 {
     private final String angleKey;
     private String legendItemKey; // optional
@@ -31,47 +31,47 @@ public class AgPieChart extends AgChart<AgPieChart>
         this.angleKey = angleKey;
     }
 
-    public AgPieChart setLegendItemKey(String legendItemKey)
+    public J setLegendItemKey(String legendItemKey)
     {
         this.legendItemKey = legendItemKey;
-        return this;
+        return (J) this;
     }
 
-    public AgPieChart setCalloutLabelKey(String calloutLabelKey)
+    public J setCalloutLabelKey(String calloutLabelKey)
     {
         this.calloutLabelKey = calloutLabelKey;
-        return this;
+        return (J) this;
     }
 
-    public AgPieChart setSectorLabelKey(String sectorLabelKey)
+    public J setSectorLabelKey(String sectorLabelKey)
     {
         this.sectorLabelKey = sectorLabelKey;
-        return this;
+        return (J) this;
     }
 
-    public AgPieChart setAngleName(String angleName)
+    public J setAngleName(String angleName)
     {
         this.angleName = angleName;
-        return this;
+        return (J) this;
     }
 
-    public AgPieChart setCalloutLabelName(String calloutLabelName)
+    public J setCalloutLabelName(String calloutLabelName)
     {
         this.calloutLabelName = calloutLabelName;
-        return this;
+        return (J) this;
     }
 
-    public AgPieChart setSectorLabelName(String sectorLabelName)
+    public J setSectorLabelName(String sectorLabelName)
     {
         this.sectorLabelName = sectorLabelName;
-        return this;
+        return (J) this;
     }
 
     /** Optional: attach data directly to the series. */
-    public AgPieChart setData(List<?> data)
+    public J setData(List<?> data)
     {
         this.data = data;
-        return this;
+        return (J) this;
     }
 
     @Override

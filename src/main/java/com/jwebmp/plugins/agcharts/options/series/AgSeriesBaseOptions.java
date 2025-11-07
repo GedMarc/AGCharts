@@ -16,6 +16,7 @@ import com.jwebmp.plugins.agcharts.options.tooltip.AgSeriesTooltipOptions;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AgSeriesBaseOptions<J extends AgSeriesBaseOptions<J>> extends JavaScriptPart<J> {
+    @com.fasterxml.jackson.annotation.JsonProperty("type")
     private String type;
     private String seriesId;
 

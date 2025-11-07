@@ -12,7 +12,7 @@ import java.util.List;
  * to ChartJS convenience wrappers. You can still override getInitialOptions()
  * if you need to customise axes, legend, tooltip, theme, etc.
  */
-public class AgBarChart extends AgChart<AgBarChart>
+public class AgBarChart<J extends AgBarChart<J>> extends AgChart<J>
 {
     private final String xKey;
     private final String yKey;
@@ -28,22 +28,22 @@ public class AgBarChart extends AgChart<AgBarChart>
     }
 
     /** Optional: attach data directly to the series. */
-    public AgBarChart setData(List<?> data)
+    public J setData(List<?> data)
     {
         this.data = data;
-        return this;
+        return (J) this;
     }
 
-    public AgBarChart setXName(String xName)
+    public J setXName(String xName)
     {
         this.xName = xName;
-        return this;
+        return (J) this;
     }
 
-    public AgBarChart setYName(String yName)
+    public J setYName(String yName)
     {
         this.yName = yName;
-        return this;
+        return (J) this;
     }
 
     @Override
