@@ -2,6 +2,7 @@ package com.jwebmp.plugins.agcharts;
 
 import com.jwebmp.plugins.agcharts.options.AgChartOptions;
 import com.jwebmp.plugins.agcharts.options.series.AgBarSeriesOptions;
+import io.smallrye.mutiny.Uni;
 
 import java.util.List;
 
@@ -47,17 +48,19 @@ public class AgBarChart<J extends AgBarChart<J>> extends AgChart<J>
     }
 
     @Override
-    public AgChartOptions<?> getInitialOptions()
+    public Uni<AgChartOptions<?>> getInitialOptions()
     {
-        AgBarSeriesOptions<?> bar = new AgBarSeriesOptions<>()
-                .setXKey(xKey)
-                .setYKey(yKey)
-                .setShowInLegend(true);
-        if (xName != null) bar.setXName(xName);
-        if (yName != null) bar.setYName(yName);
-        if (data != null) bar.setData(data);
+        return Uni.createFrom().item(() -> {
+            AgBarSeriesOptions<?> bar = new AgBarSeriesOptions<>()
+                    .setXKey(xKey)
+                    .setYKey(yKey)
+                    .setShowInLegend(true);
+            if (xName != null) bar.setXName(xName);
+            if (yName != null) bar.setYName(yName);
+            if (data != null) bar.setData(data);
 
-        return new AgChartOptions<>()
-                .setSeries(java.util.List.of(bar));
+            return new AgChartOptions<>()
+                    .setSeries(java.util.List.of(bar));
+        });
     }
 }

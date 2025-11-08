@@ -13,6 +13,7 @@ import com.jwebmp.core.base.angular.client.annotations.references.NgImportModule
 import com.jwebmp.core.base.angular.client.annotations.references.NgImportReference;
 import com.jwebmp.core.base.angular.client.annotations.structures.NgField;
 import com.jwebmp.core.base.angular.client.annotations.structures.NgMethod;
+import com.jwebmp.core.base.angular.client.annotations.structures.NgSignal;
 import com.jwebmp.core.base.angular.client.services.EventBusService;
 import com.jwebmp.core.base.angular.client.services.interfaces.AnnotationUtils;
 import com.jwebmp.core.base.angular.client.services.interfaces.INgComponent;
@@ -20,9 +21,13 @@ import com.jwebmp.core.base.angular.implementations.WebSocketAbstractCallReceive
 import com.jwebmp.core.base.html.Div;
 import com.jwebmp.core.base.html.DivSimple;
 import com.jwebmp.plugins.agcharts.options.AgChartOptions;
+import io.smallrye.mutiny.Uni;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Base AG Charts component for JWebMP.
@@ -41,16 +46,13 @@ import java.util.List;
 
 
 // Angular glue - holds runtime state and behaviour.
-@NgField("private chartOpts: any; // holds the current chart options")
+@NgSignal(type = "any | undefined", referenceName = "chartOptions", value = "undefined")
 @NgField("readonly handlerId : string;")
 @NgConstructorBody("this.handlerId = this.generateHandlerId();")
 @NgField("private subscriptionOptions?: Subscription;")
-
-// Expose options getter for the template binding.
-@NgMethod("chartOptions() { return this.chartOpts; }")
-
-// Allow host to check configuration readiness (compat with existing pattern).
-@NgMethod("chartConfiguration() { return this.chartOpts != null; }")
+@NgField("private subscriptionData?: Subscription;")
+@NgField("chartData: any; // optional separate data payload")
+@NgField("readonly chartReady = computed(()=>!!this.chartOptions());")
 
 // Subscribe to EventBus for options updates.
 @NgMethod("initializeOptionsListener() {\n" +
@@ -70,22 +72,64 @@ import java.util.List;
         "    const payload = typeof data === 'string' ? JSON.parse(data) : data;\n" +
         "    // Some servers wrap in { out: [...] }\n" +
         "    const options = payload && payload.out && payload.out[0] ? payload.out[0] : payload;\n" +
-        "    this.chartOpts = options;\n" +
+        "    this.chartOptions.set(options);\n" +
         "  } catch (e) {\n" +
         "    console.error('[AgChart] Failed to parse options payload', e, data);\n" +
         "  }\n" +
         "}")
 
 // Request initial options from the server via the event bus (WebSocket behind the scenes).
-@NgMethod("fetchData() {\n" +
+@NgMethod("fetchOptions() {\n" +
         "  this.eventBusService.send(this.listenerName + 'Options', {\n" +
         "    className: this.clazzName,\n" +
         "    listenerName: this.listenerName + 'Options'\n" +
         "  }, this.listenerName + 'Options');\n" +
         "}")
 
-@NgAfterViewInit("this.initializeOptionsListener(); this.fetchData();")
-@NgOnDestroy("this.subscriptionOptions?.unsubscribe(); this.eventBusService.unregisterListener(this.listenerName + 'Options', this.handlerId);")
+// Listen for server-pushed data updates
+@NgMethod("initializeDataListener() {\n" +
+        "  const observer = {\n" +
+        "    next: (data: any) => this.handleDataEvent(data),\n" +
+        "    error: (err: any) => console.error('[AgChart] data listener error:', err),\n" +
+        "    complete: () => console.log('[AgChart] data listener completed'),\n" +
+        "  };\n" +
+        "  this.subscriptionData = this.eventBusService\n" +
+        "    .listen(this.listenerName + 'Data', this.handlerId)\n" +
+        "    .subscribe(observer);\n" +
+        "}")
+
+// Apply incoming data into options structure without overwriting other config
+@NgMethod("handleDataEvent(data: any) {\n" +
+        "  try {\n" +
+        "    const payload = typeof data === 'string' ? JSON.parse(data) : data;\n" +
+        "    const value = payload && payload.out && payload.out[0] ? payload.out[0] : payload;\n" +
+        "    this.chartData = value;\n" +
+        "    const current = this.chartOptions();\n" +
+        "    if (!current) { return; }\n" +
+        "    let updated;\n" +
+        "    if (Array.isArray(current.series) && current.series.length > 0) {\n" +
+        "      // Common case: first series data\n" +
+        "      updated = { ...current, series: [ { ...current.series[0], data: value }, ...current.series.slice(1) ] };\n" +
+        "    } else {\n" +
+        "      // Fallback: place on options.data\n" +
+        "      updated = { ...current, data: value };\n" +
+        "    }\n" +
+        "    this.chartOptions.set(updated);\n" +
+        "  } catch (e) {\n" +
+        "    console.error('[AgChart] Failed to parse data payload', e, data);\n" +
+        "  }\n" +
+        "}")
+
+// Request initial data from server
+@NgMethod("fetchDataChannel() {\n" +
+        "  this.eventBusService.send(this.listenerName + 'Data', {\n" +
+        "    className: this.clazzName,\n" +
+        "    listenerName: this.listenerName + 'Data'\n" +
+        "  }, this.listenerName + 'Data');\n" +
+        "}")
+
+@NgAfterViewInit("this.initializeOptionsListener(); this.initializeDataListener(); this.fetchOptions(); this.fetchDataChannel();")
+@NgOnDestroy("this.subscriptionOptions?.unsubscribe(); this.subscriptionData?.unsubscribe(); this.eventBusService.unregisterListener(this.listenerName + 'Options', this.handlerId); this.eventBusService.unregisterListener(this.listenerName + 'Data', this.handlerId);")
 
 @NgImportReference(value = "Subscription", reference = "rxjs")
 @NgMethod("""
@@ -107,7 +151,7 @@ public abstract class AgChart<J extends AgChart<J>> extends DivSimple<J> impleme
         setID(id);
         setTag("ag-charts");
         addAttribute("[options]", "chartOptions()");
-        addAttribute("*ngIf", "chartConfiguration() && chartOptions()");
+        addAttribute("*ngIf", "chartReady() && chartOptions()");
 
         addConfiguration(AnnotationUtils.getNgField("readonly listenerName = '" + getID() + "';"));
         addConfiguration(AnnotationUtils.getNgField("readonly clazzName = '" + getClass().getCanonicalName() + "';"));
@@ -115,9 +159,19 @@ public abstract class AgChart<J extends AgChart<J>> extends DivSimple<J> impleme
     }
 
     /**
-     * Server-side: provide the initial chart options.
+     * Server-side: provide the initial chart options, reactively.
      */
-    public abstract AgChartOptions<?> getInitialOptions();
+    public abstract Uni<AgChartOptions<?>> getInitialOptions();
+
+    /**
+     * Server-side: provide initial chart data separately from options (optional), reactively.
+     * If the emitted item is null, no data message will be sent unless the server pushes later.
+     */
+    public Uni<Object> getInitialData()
+    {
+        return Uni.createFrom()
+                  .nullItem();
+    }
 
     protected String getListenerName()
     {
@@ -129,11 +183,20 @@ public abstract class AgChart<J extends AgChart<J>> extends DivSimple<J> impleme
         return getID() + "Options";
     }
 
+    protected String getListenerNameData()
+    {
+        return getID() + "Data";
+    }
+
     protected void registerWebSocketListeners()
     {
         if (!IGuicedWebSocket.isWebSocketReceiverRegistered(getListenerNameOptions()))
         {
             IGuicedWebSocket.addWebSocketMessageReceiver(new InitialOptionsReceiver(getListenerNameOptions(), getClass()));
+        }
+        if (!IGuicedWebSocket.isWebSocketReceiverRegistered(getListenerNameData()))
+        {
+            IGuicedWebSocket.addWebSocketMessageReceiver(new DataReceiver(getListenerNameData(), getClass()));
         }
     }
 
@@ -161,6 +224,12 @@ public abstract class AgChart<J extends AgChart<J>> extends DivSimple<J> impleme
             this.actionClass = actionClass;
         }
 
+        public Set<String> messageNames()
+        {
+            return Set.of(listenerName);
+        }
+
+
         @Override
         public String getMessageDirector()
         {
@@ -168,32 +237,61 @@ public abstract class AgChart<J extends AgChart<J>> extends DivSimple<J> impleme
         }
 
         @Override
-        public AjaxResponse<?> action(AjaxCall<?> call, AjaxResponse<?> response)
+        public io.smallrye.mutiny.Uni<AjaxResponse<?>> action(AjaxCall<?> call, AjaxResponse<?> response)
         {
-            try
-            {
-                // Resolve the concrete component class and listener name from the call
-                actionClass = (Class<? extends AgChart>) Class.forName(call.getClassName());
-                Object ln = call.getUnknownFields() != null ? call.getUnknownFields()
-                                                                  .get("listenerName") : null;
-                if (ln != null)
-                {
-                    listenerName = ln.toString();
-                }
-            }
-            catch (ClassNotFoundException e)
-            {
-                e.printStackTrace();
-            }
+            return IGuiceContext.get(actionClass)
+                                .getInitialOptions()
+                                .onItem()
+                                .transform(initial -> {
+                                    if (initial == null)
+                                    {
+                                        return null;
+                                    }
+                                    response.addDataResponse(listenerName, (com.jwebmp.plugins.agcharts.options.AgChartOptions<?>) initial);
+                                    return response;
+                                });
+        }
+    }
 
-            AgChartOptions<?> initial = IGuiceContext.get(actionClass)
-                                                     .getInitialOptions();
-            if (initial == null)
-            {
-                return null;
-            }
-            response.addDataResponse(listenerName, initial);
-            return response;
+    /**
+     * Receives initial data over WebSocket and returns them to the client.
+     */
+    private static class DataReceiver extends WebSocketAbstractCallReceiver
+    {
+        private String listenerName;
+        private Class<? extends AgChart> actionClass;
+
+        public DataReceiver() {}
+
+        public DataReceiver(String listenerName, Class<? extends AgChart> actionClass)
+        {
+            this.listenerName = listenerName;
+            this.actionClass = actionClass;
+        }
+
+        public Set<String> messageNames()
+        {
+            return Set.of(listenerName);
+        }
+
+
+        @Override
+        public String getMessageDirector()
+        {
+            return listenerName;
+        }
+
+        @Override
+        public io.smallrye.mutiny.Uni<AjaxResponse<?>> action(AjaxCall<?> call, AjaxResponse<?> response)
+        {
+            return IGuiceContext.get(actionClass)
+                                .getInitialData()
+                                .onItem()
+                                .transform(data -> {
+                                    DynamicData dd = new DynamicData().addData(data);
+                                    response.addDataResponse(listenerName, dd);
+                                    return response;
+                                });
         }
     }
 

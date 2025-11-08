@@ -2,6 +2,7 @@ package com.jwebmp.plugins.agcharts;
 
 import com.jwebmp.plugins.agcharts.options.AgChartOptions;
 import com.jwebmp.plugins.agcharts.options.series.AgPieSeriesOptions;
+import io.smallrye.mutiny.Uni;
 
 import java.util.List;
 
@@ -75,20 +76,22 @@ public class AgPieChart<J extends AgPieChart<J>> extends AgChart<J>
     }
 
     @Override
-    public AgChartOptions<?> getInitialOptions()
+    public Uni<AgChartOptions<?>> getInitialOptions()
     {
-        AgPieSeriesOptions<?> pie = new AgPieSeriesOptions<>()
-                .setAngleKey(angleKey)
-                .setShowInLegend(true);
-        if (legendItemKey != null) pie.setLegendItemKey(legendItemKey);
-        if (calloutLabelKey != null) pie.setCalloutLabelKey(calloutLabelKey);
-        if (sectorLabelKey != null) pie.setSectorLabelKey(sectorLabelKey);
-        if (angleName != null) pie.setAngleName(angleName);
-        if (calloutLabelName != null) pie.setCalloutLabelName(calloutLabelName);
-        if (sectorLabelName != null) pie.setSectorLabelName(sectorLabelName);
-        if (data != null) pie.setData(data);
+        return Uni.createFrom().item(() -> {
+            AgPieSeriesOptions<?> pie = new AgPieSeriesOptions<>()
+                    .setAngleKey(angleKey)
+                    .setShowInLegend(true);
+            if (legendItemKey != null) pie.setLegendItemKey(legendItemKey);
+            if (calloutLabelKey != null) pie.setCalloutLabelKey(calloutLabelKey);
+            if (sectorLabelKey != null) pie.setSectorLabelKey(sectorLabelKey);
+            if (angleName != null) pie.setAngleName(angleName);
+            if (calloutLabelName != null) pie.setCalloutLabelName(calloutLabelName);
+            if (sectorLabelName != null) pie.setSectorLabelName(sectorLabelName);
+            if (data != null) pie.setData(data);
 
-        return new AgChartOptions<>()
-                .setSeries(java.util.List.of(pie));
+            return new AgChartOptions<>()
+                    .setSeries(java.util.List.of(pie));
+        });
     }
 }

@@ -2,6 +2,7 @@ package com.jwebmp.plugins.agcharts;
 
 import com.jwebmp.plugins.agcharts.options.AgChartOptions;
 import com.jwebmp.plugins.agcharts.options.series.AgDonutSeriesOptions;
+import io.smallrye.mutiny.Uni;
 
 import java.util.List;
 
@@ -53,17 +54,19 @@ public class AgDonutChart<J extends AgDonutChart<J>> extends AgChart<J>
     }
 
     @Override
-    public AgChartOptions<?> getInitialOptions()
+    public Uni<AgChartOptions<?>> getInitialOptions()
     {
-        AgDonutSeriesOptions<?> donut = new AgDonutSeriesOptions<>()
-                .setAngleKey(angleKey)
-                .setShowInLegend(true);
-        if (calloutLabelKey != null) donut.setCalloutLabelKey(calloutLabelKey);
-        if (sectorLabelKey != null) donut.setSectorLabelKey(sectorLabelKey);
-        if (legendItemKey != null) donut.setLegendItemKey(legendItemKey);
-        if (data != null) donut.setData(data);
+        return Uni.createFrom().item(() -> {
+            AgDonutSeriesOptions<?> donut = new AgDonutSeriesOptions<>()
+                    .setAngleKey(angleKey)
+                    .setShowInLegend(true);
+            if (calloutLabelKey != null) donut.setCalloutLabelKey(calloutLabelKey);
+            if (sectorLabelKey != null) donut.setSectorLabelKey(sectorLabelKey);
+            if (legendItemKey != null) donut.setLegendItemKey(legendItemKey);
+            if (data != null) donut.setData(data);
 
-        return new AgChartOptions<>()
-                .setSeries(java.util.List.of(donut));
+            return new AgChartOptions<>()
+                    .setSeries(java.util.List.of(donut));
+        });
     }
 }

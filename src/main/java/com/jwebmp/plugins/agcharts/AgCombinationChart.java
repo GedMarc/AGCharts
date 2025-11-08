@@ -3,6 +3,7 @@ package com.jwebmp.plugins.agcharts;
 import com.jwebmp.plugins.agcharts.options.AgChartOptions;
 import com.jwebmp.plugins.agcharts.options.axes.AgAxisBaseOptions;
 import com.jwebmp.plugins.agcharts.options.series.AgSeriesBaseOptions;
+import io.smallrye.mutiny.Uni;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,17 +76,19 @@ public class AgCombinationChart<J extends AgCombinationChart<J>> extends AgChart
     }
 
     @Override
-    public AgChartOptions<?> getInitialOptions()
+    public Uni<AgChartOptions<?>> getInitialOptions()
     {
-        AgChartOptions<?> options = new AgChartOptions<>();
-        if (!series.isEmpty())
-        {
-            options.setSeries(series);
-        }
-        if (axes != null && !axes.isEmpty())
-        {
-            options.setAxes(axes);
-        }
-        return options;
+        return Uni.createFrom().item(() -> {
+            AgChartOptions<?> options = new AgChartOptions<>();
+            if (!series.isEmpty())
+            {
+                options.setSeries(series);
+            }
+            if (axes != null && !axes.isEmpty())
+            {
+                options.setAxes(axes);
+            }
+            return options;
+        });
     }
 }

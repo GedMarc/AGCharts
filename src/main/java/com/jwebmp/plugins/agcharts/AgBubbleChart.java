@@ -2,6 +2,7 @@ package com.jwebmp.plugins.agcharts;
 
 import com.jwebmp.plugins.agcharts.options.AgChartOptions;
 import com.jwebmp.plugins.agcharts.options.series.AgBubbleSeriesOptions;
+import io.smallrye.mutiny.Uni;
 
 import java.util.List;
 
@@ -55,19 +56,21 @@ public class AgBubbleChart<J extends AgBubbleChart<J>> extends AgChart<J>
     }
 
     @Override
-    public AgChartOptions<?> getInitialOptions()
+    public io.smallrye.mutiny.Uni<AgChartOptions<?>> getInitialOptions()
     {
-        AgBubbleSeriesOptions<?> bubble = new AgBubbleSeriesOptions<>()
-                .setXKey(xKey)
-                .setYKey(yKey)
-                .setSizeKey(sizeKey)
-                .setShowInLegend(true);
-        if (xName != null) bubble.setXName(xName);
-        if (yName != null) bubble.setYName(yName);
-        if (sizeName != null) bubble.setSizeName(sizeName);
-        if (data != null) bubble.setData(data);
+        return io.smallrye.mutiny.Uni.createFrom().item(() -> {
+            AgBubbleSeriesOptions<?> bubble = new AgBubbleSeriesOptions<>()
+                    .setXKey(xKey)
+                    .setYKey(yKey)
+                    .setSizeKey(sizeKey)
+                    .setShowInLegend(true);
+            if (xName != null) bubble.setXName(xName);
+            if (yName != null) bubble.setYName(yName);
+            if (sizeName != null) bubble.setSizeName(sizeName);
+            if (data != null) bubble.setData(data);
 
-        return new AgChartOptions<>()
-                .setSeries(java.util.List.of(bubble));
+            return new AgChartOptions<>()
+                    .setSeries(java.util.List.of(bubble));
+        });
     }
 }
