@@ -211,7 +211,7 @@ public abstract class AgChart<J extends AgChart<J>> extends DivSimple<J> impleme
     /**
      * Receives initial options over WebSocket and returns them to the client.
      */
-    private static class InitialOptionsReceiver extends WebSocketAbstractCallReceiver
+    private static class InitialOptionsReceiver extends WebSocketAbstractCallReceiver<InitialOptionsReceiver>
     {
         private String listenerName;
         private Class<? extends AgChart> actionClass;
@@ -256,7 +256,7 @@ public abstract class AgChart<J extends AgChart<J>> extends DivSimple<J> impleme
     /**
      * Receives initial data over WebSocket and returns them to the client.
      */
-    private static class DataReceiver extends WebSocketAbstractCallReceiver
+    private static class DataReceiver extends WebSocketAbstractCallReceiver<DataReceiver>
     {
         private String listenerName;
         private Class<? extends AgChart> actionClass;
